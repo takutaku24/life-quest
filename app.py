@@ -7,7 +7,8 @@ import json
 import time
 
 # --- 1. 設定とデータ定義 ---
-SHEET_NAME = "life_quest_db"
+# ★ここが最大の修正ポイント！名前ではなく、URLのIDで直接指定します。
+SHEET_ID = "17YKG8M4kOQN1gZl1zM-LCghU5mv0-twDoxkfy88IXl0"
 
 # 画像URLリスト
 MONSTER_IMGS = {
@@ -31,7 +32,6 @@ MONSTER_DB = {
         {"name": "🐺 シルバーウルフ", "power": 3000, "skill": {"type": "task_bonus", "target": "ウォーキング", "val": 0.15}, "desc": "歩行報酬+15%！孤高の狼。", "img": MONSTER_IMGS["SR_WOLF"]},
         {"name": "🦅 グリフォン", "power": 3200, "skill": {"type": "task_bonus", "target": "筋トレ", "val": 0.15}, "desc": "筋トレ報酬+15%！空の王者。", "img": "https://placehold.co/400x400/d35400/f1c40f?text=Griffon"}
     ],
-    # ★ここに「R」を復活させました！これでエラーが消えます★
     "R": [
         {"name": "🐗 ワイルドボア", "power": 1200, "skill": {"type": "task_bonus", "target": "筋トレ", "val": 0.05}, "desc": "筋トレ報酬+5%！猪突猛進。", "img": "https://placehold.co/400x400/7f8c8d/c0392b?text=Wild+Boar"},
         {"name": "🕷️ 巨大グモ", "power": 1100, "skill": {"type": "task_bonus", "target": "コード書き", "val": 0.05}, "desc": "コード報酬+5%！ネットの住人。", "img": "https://placehold.co/400x400/2c3e50/27ae60?text=Giant+Spider"},
@@ -57,13 +57,15 @@ def get_database():
     creds_dict = dict(st.secrets["gcp_service_account"])
     creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
     client = gspread.authorize(creds)
-    return client.open(SHEET_NAME).sheet1
+    # ★ 名前検索をやめて、IDで直接ファイルを開きます！
+    return client.open_by_key(SHEET_ID).sheet1
 
 # データ読み込み
 def load_data():
     try:
         sheet = get_database()
-        data_str = sheet.acell('A1').value
+        # 最新の読み込み方式
+        data_str = sheet.get('A1')[0][0] if sheet.get('A1') else None
         if data_str:
             data = json.loads(data_str)
             if "monster_levels" not in data:
@@ -105,10 +107,10 @@ def save_data(data):
         
         sheet = get_database()
         json_str = json.dumps(data, ensure_ascii=False)
-        sheet.update_acell('A1', json_str)
+        # ★ 確実な保存コマンドに変更
+        sheet.update(range_name='A1', values=[[json_str]])
     except Exception as e:
-        if "200" in str(e): return 
-        st.error(f"セーブ失敗: {e}")
+        print(f"Error saving data: {e}") # 画面には出さず裏で記録
 
 # パッシブスキル計算
 def calculate_bonus(data, task_name_part):
@@ -153,7 +155,7 @@ def check_login_bonus(data):
     return False, 0
 
 # --- 3. アプリ画面構築 ---
-st.set_page_config(page_title="Life Quest V10.1", page_icon="⚔️")
+st.set_page_config(page_title="Life Quest V10.2", page_icon="⚔️")
 
 st.markdown("""
 <style>
@@ -186,9 +188,11 @@ with st.sidebar:
             st.caption(f"✅ {ach['name']}")
     
     st.write("---")
-    if st.button("🔄 データ更新"): st.rerun()
+    if st.button("🔄 データ強制保存"): 
+        save_data(data)
+        st.success("セーブコマンドを送信しました！")
 
-st.title("⚔️ Life Quest: X (V10.1)")
+st.title("⚔️ Life Quest: X (V10.2)")
 
 is_new_day, bonus = check_login_bonus(data)
 if is_new_day:
@@ -359,7 +363,6 @@ with tab5:
     cols = st.columns(3)
     my_monsters = data["monster_levels"]
     i = 0
-    # ここにRも追加しました
     for rarity in ["UR", "SSR", "SR", "R", "N"]:
         for m in MONSTER_DB[rarity]:
             if m["name"] in my_monsters:
