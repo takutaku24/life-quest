@@ -6,7 +6,6 @@ import random
 import json
 
 # --- 1. 設定とスプレッドシート接続 ---
-# スプレッドシートの名前（さっき作ったやつ）
 SHEET_NAME = "life_quest_db"
 
 # ガチャ設定
@@ -19,39 +18,36 @@ MONSTERS = {
     "N(50%)": ["💧 スライム", "🍄 きのこ", "🐛 けむし"]
 }
 
-# データベース接続関数
+# データベース接続
 def get_database():
-    # Streamlitの「金庫」から鍵を取り出す
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds_dict = dict(st.secrets["gcp_service_account"]) # 金庫の鍵
+    creds_dict = dict(st.secrets["gcp_service_account"])
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     client = gspread.authorize(creds)
     return client.open(SHEET_NAME).sheet1
 
-# データの読み込み
+# データ読み込み
 def load_data():
     try:
         sheet = get_database()
-        # A1セルにJSON形式で全データを保存する簡易方式
-        data_str = sheet.cell(1, 1).value
+        data_str = sheet.acell('A1').value # ここを修正
         if data_str:
             return json.loads(data_str)
-    except Exception as e:
-        pass # 初回やエラー時は初期データを返す
-    
+    except Exception:
+        pass
     return {
         "points": 0, "xp": 0, "level": 1, 
         "last_login": "", "collection": [], "daily_gacha_done": False
     }
 
-# データの保存
+# データ保存
 def save_data(data):
     try:
         sheet = get_database()
-        # A1セルにデータを上書き
-        sheet.update_cell(1, 1, json.dumps(data, ensure_ascii=False))
+        # update_cell は古いので update_acell に変更
+        sheet.update_acell('A1', json.dumps(data, ensure_ascii=False))
     except Exception as e:
-        st.error(f"セーブに失敗しました: {e}")
+        st.error(f"セーブ失敗: {e}")
 
 # --- 2. ゲームロジック ---
 def pull_gacha():
@@ -75,15 +71,12 @@ def check_login_bonus(data):
 # --- 3. アプリ画面 ---
 st.set_page_config(page_title="Life Quest Cloud", page_icon="☁️")
 
-# セッション状態の初期化
 if 'data' not in st.session_state:
     st.session_state.data = load_data()
 data = st.session_state.data
 
-# CSS
 st.markdown("""<style>.stButton>button {width: 100%; border-radius: 10px; font-weight: bold;}</style>""", unsafe_allow_html=True)
 
-# サイドバー
 with st.sidebar:
     st.title("☁️ 冒険の記録")
     st.write(f"Lv: **{data['level']}**")
@@ -94,10 +87,8 @@ with st.sidebar:
     for m in set(data['collection']):
         st.write(m)
 
-# メイン
 st.title("☁️ Life Quest: Cloud Edition")
 
-# ログインボーナス
 is_new_day, bonus = check_login_bonus(data)
 if is_new_day:
     st.balloons()
@@ -128,7 +119,6 @@ with tab2:
         st.balloons()
         st.write(f"## {rarity}\n# {monster}")
 
-# データ同期ボタン
-if st.button("🔄 手動セーブ（念のため）"):
+if st.button("🔄 手動セーブ"):
     save_data(data)
     st.success("クラウドに保存しました！")
