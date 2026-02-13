@@ -8,18 +8,15 @@ import time
 
 # --- 1. 設定とデータ定義 ---
 
-# ★★★ ここが最強の解決策です！ ★★★
-# スプレッドシートのURLを直接指定します。（私が画像から読み取りました）
-# もしこれでもエラーが出たら、あなたのブラウザの上のアドレスバーにあるURLをコピーして、
-# この "" の中に貼り付け直してください！
-SHEET_URL = "https://docs.google.com/spreadsheets/d/17YKG8M4kOQN1gZl1zM-LCghU5mv0-twDoxkfy88IXl0/edit#gid=0"
-
+# ★★★ 新しいスプレッドシートの確実なIDです！ ★★★
+SHEET_ID = "1FvqLUrkR_YYk_azwI35rGr6_Y2swgUp1mawfJget5KU"
 
 # 画像URLリスト
 MONSTER_IMGS = {
     "UR_DRAGON": "https://images.unsplash.com/photo-1599725427295-584a96319d69?auto=format&fit=crop&q=80&w=400",
     "SSR_ROBOT": "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&q=80&w=400",
     "SR_WOLF": "https://images.unsplash.com/photo-1590420485404-f86f2f12c6a0?auto=format&fit=crop&q=80&w=400",
+    "R_BOAR": "https://images.unsplash.com/photo-1588636402377-59f63567a216?auto=format&fit=crop&q=80&w=400",
     "N_SLIME": "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?auto=format&fit=crop&q=80&w=400",
     "GACHA_GIF": "https://media.tenor.com/JdJOQWqH3yUAAAAM/summon-summoning.gif"
 }
@@ -38,7 +35,7 @@ MONSTER_DB = {
         {"name": "🦅 グリフォン", "power": 3200, "skill": {"type": "task_bonus", "target": "筋トレ", "val": 0.15}, "desc": "筋トレ報酬+15%！空の王者。", "img": "https://placehold.co/400x400/d35400/f1c40f?text=Griffon"}
     ],
     "R": [
-        {"name": "🐗 ワイルドボア", "power": 1200, "skill": {"type": "task_bonus", "target": "筋トレ", "val": 0.05}, "desc": "筋トレ報酬+5%！猪突猛進。", "img": "https://placehold.co/400x400/7f8c8d/c0392b?text=Wild+Boar"},
+        {"name": "🐗 ワイルドボア", "power": 1200, "skill": {"type": "task_bonus", "target": "筋トレ", "val": 0.05}, "desc": "筋トレ報酬+5%！猪突猛進。", "img": MONSTER_IMGS["R_BOAR"]},
         {"name": "🕷️ 巨大グモ", "power": 1100, "skill": {"type": "task_bonus", "target": "コード書き", "val": 0.05}, "desc": "コード報酬+5%！ネットの住人。", "img": "https://placehold.co/400x400/2c3e50/27ae60?text=Giant+Spider"},
         {"name": "🦇 コウモリ", "power": 900, "skill": {"type": "task_bonus", "target": "ウォーキング", "val": 0.05}, "desc": "歩行報酬+5%！夜行性。", "img": "https://placehold.co/400x400/34495e/f1c40f?text=Bat"}
     ],
@@ -62,8 +59,8 @@ def get_database():
     creds_dict = dict(st.secrets["gcp_service_account"])
     creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
     client = gspread.authorize(creds)
-    # ★ URLで確実にあなたのシートを開きます！
-    return client.open_by_url(SHEET_URL).sheet1
+    # 新しいシートを確実なIDで開く！
+    return client.open_by_key(SHEET_ID).sheet1
 
 # データ読み込み
 def load_data():
@@ -85,7 +82,9 @@ def load_data():
             if "expedition" not in data: data["expedition"] = {"active": False, "end_time": None, "monster": ""}
             if "daily_shop_counts" not in data: data["daily_shop_counts"] = {"ticket": 0}
             return data
-    except: pass
+    except Exception as e:
+        print(f"Load Error: {e}")
+        pass
     
     return {
         "points": 0, "total_points": 0, "xp": 0, "level": 1, 
@@ -113,7 +112,6 @@ def save_data(data):
         json_str = json.dumps(data, ensure_ascii=False)
         sheet.update_acell('A1', json_str)
     except Exception as e:
-        # 万が一 200 という文字が含まれていたら、それは成功なので無視する
         if "200" in repr(e) or "200" in str(e): return 
         st.error(f"セーブ失敗: {e}")
 
@@ -160,7 +158,7 @@ def check_login_bonus(data):
     return False, 0
 
 # --- 3. アプリ画面構築 ---
-st.set_page_config(page_title="Life Quest", page_icon="⚔️")
+st.set_page_config(page_title="Life Quest: Chronicle", page_icon="⚔️")
 
 st.markdown("""
 <style>
@@ -193,11 +191,11 @@ with st.sidebar:
             st.caption(f"✅ {ach['name']}")
     
     st.write("---")
-    if st.button("🔄 データ手動保存"): 
+    if st.button("🔄 データを手動保存"): 
         save_data(data)
         st.success("セーブコマンドを送信しました！")
 
-st.title("⚔️ Life Quest: X")
+st.title("⚔️ Life Quest: Chronicle")
 
 is_new_day, bonus = check_login_bonus(data)
 if is_new_day:
