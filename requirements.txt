@@ -1,4 +1,5 @@
 streamlit
-gspread
+gspread==6.1.2
 google-auth
+
 
