@@ -8,8 +8,7 @@ import json
 # --- 1. 設定とデータ定義 ---
 SHEET_NAME = "life_quest_db"
 
-# ★ここが進化したモンスター図鑑データ！
-# 好きな画像のURL（ネット上の画像の住所）を入れると、それが表示されます！
+# モンスター図鑑データ
 MONSTER_DB = {
     "UR": [
         {"name": "🐲 伝説のドラゴン", "power": 9999, "desc": "世界を焼き尽くす炎を吐く、最強の古龍。", "img": "https://placehold.co/400x400/000000/FF0000?text=Dragon"},
@@ -49,7 +48,7 @@ def get_database():
     client = gspread.authorize(creds)
     return client.open(SHEET_NAME).sheet1
 
-# データ読み込み・保存
+# データ読み込み
 def load_data():
     try:
         sheet = get_database()
@@ -58,11 +57,15 @@ def load_data():
     except: pass
     return {"points": 0, "xp": 0, "level": 1, "last_login": "", "collection": [], "daily_gacha_done": False}
 
+# データ保存（★修正ポイント：update_acellに変更）
 def save_data(data):
     try:
         sheet = get_database()
-        sheet.update(range_name='A1', values=[[json.dumps(data, ensure_ascii=False)]])
-    except Exception as e: st.error(f"セーブ失敗: {e}")
+        json_str = json.dumps(data, ensure_ascii=False)
+        # A1セルに確実に書き込む命令に変更
+        sheet.update_acell('A1', json_str)
+    except Exception as e:
+        st.error(f"セーブ失敗: {e}")
 
 # ガチャロジック
 def pull_gacha():
@@ -81,35 +84,33 @@ def check_login_bonus(data):
     return False, 0
 
 # --- 3. アプリ画面構築 ---
-st.set_page_config(page_title="Life Quest V5", page_icon="⚔️")
+st.set_page_config(page_title="Life Quest V6", page_icon="⚔️")
 
-# CSSで見た目をゲームっぽく調整
+# CSS
 st.markdown("""
 <style>
     .stButton>button { width: 100%; border-radius: 12px; font-weight: bold; border: 2px solid #333; }
     .status-box { padding: 15px; border-radius: 10px; background-color: #f0f2f6; border: 2px solid #ccc; margin-bottom: 20px; }
     .card { background-color: #fff; padding: 10px; border-radius: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); border: 1px solid #ddd; text-align: center; }
     .rarity-UR { color: #ff0000; font-weight: bold; font-size: 1.2em; }
-    .rarity-SSR { color: #DAA520; font-weight: bold; }
 </style>
 """, unsafe_allow_html=True)
 
 if 'data' not in st.session_state: st.session_state.data = load_data()
 data = st.session_state.data
 
-# サイドバー（ステータス画面）
+# サイドバー
 with st.sidebar:
     st.title("🛡️ 勇者のステータス")
     st.markdown(f"""
     <div class="status-box">
         <h3>Lv. {data['level']}</h3>
         <p>💎 ポイント: <b>{data['points']}</b></p>
-        <p>⚔️ 次のレベルまで: {data['level']*100 - data['xp']} XP</p>
+        <p>⚔️ 次の: {data['level']*100 - data['xp']} XP</p>
     </div>
     """, unsafe_allow_html=True)
     st.progress(min(data['xp'] % 100 / 100, 1.0))
 
-# メイン画面
 st.title("⚔️ Life Quest: Chronicle")
 
 is_new_day, bonus = check_login_bonus(data)
@@ -135,36 +136,49 @@ with tab1:
                 save_data(data)
                 st.rerun()
 
-# --- ガチャ ---
+# --- ガチャ（★修正ポイント：無料ガチャ復活） ---
 with tab2:
     st.subheader("モンスター召喚")
-    if st.button("💎 200pt で引く", disabled=data["points"] < 200):
-        data["points"] -= 200
-        rarity, monster = pull_gacha()
-        # 名前だけ保存して容量節約
-        data["collection"].append(monster["name"])
-        save_data(data)
-        
-        st.balloons()
-        st.markdown(f"## ⚡ {rarity} 召喚成功！")
-        # 結果表示カード
-        st.image(monster["img"], width=300)
-        st.markdown(f"### {monster['name']}")
-        st.info(monster["desc"])
+    
+    col_g1, col_g2 = st.columns(2)
+    
+    # 無料ガチャ
+    with col_g1:
+        st.info("🆓 1日1回 無料")
+        if st.button("無料で引く！", disabled=data["daily_gacha_done"], key="free_gacha"):
+            data["daily_gacha_done"] = True
+            rarity, monster = pull_gacha()
+            data["collection"].append(monster["name"])
+            save_data(data)
+            
+            st.balloons()
+            st.markdown(f"## ⚡ {rarity} 召喚！\n### {monster['name']}")
+            st.image(monster["img"], width=200)
+            st.rerun()
 
-# --- 図鑑（コレクション詳細） ---
+    # 有料ガチャ
+    with col_g2:
+        st.warning("💎 200pt 召喚")
+        if st.button("200pt で引く", disabled=data["points"] < 200, key="paid_gacha"):
+            data["points"] -= 200
+            rarity, monster = pull_gacha()
+            data["collection"].append(monster["name"])
+            save_data(data)
+            
+            st.balloons()
+            st.markdown(f"## ⚡ {rarity} 召喚！\n### {monster['name']}")
+            st.image(monster["img"], width=200)
+            st.rerun()
+
+# --- 図鑑 ---
 with tab3:
     st.subheader("📦 収集済みモンスター")
     if not data["collection"]:
-        st.warning("まだモンスターを持っていません。ガチャを引こう！")
+        st.warning("モンスターがいません。ガチャを引こう！")
     else:
-        # 持っているモンスターのリストを整理
         my_collection = sorted(list(set(data["collection"])))
-        
-        # 3列で表示
         cols = st.columns(3)
         for i, monster_name in enumerate(my_collection):
-            # データベースから詳細情報を探す
             found_monster = None
             found_rarity = "N"
             for r, m_list in MONSTER_DB.items():
@@ -183,6 +197,6 @@ with tab3:
                     </div>
                     """, unsafe_allow_html=True)
                     st.image(found_monster["img"], use_column_width=True)
-                    with st.expander("詳細を見る"):
+                    with st.expander("詳細"):
                         st.write(f"⚔️ 戦闘力: {found_monster['power']}")
                         st.caption(found_monster["desc"])
