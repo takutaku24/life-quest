@@ -1,6 +1,6 @@
 import streamlit as st
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials # 新しいライブラリ
 import datetime
 import random
 import json
@@ -18,23 +18,32 @@ MONSTERS = {
     "N(50%)": ["💧 スライム", "🍄 きのこ", "🐛 けむし"]
 }
 
-# データベース接続
+# データベース接続（ここを最新版にしました！）
 def get_database():
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    # 許可する範囲（スコープ）を設定
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive"
+    ]
+    
+    # Secretsから鍵情報を取り出す
     creds_dict = dict(st.secrets["gcp_service_account"])
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    
+    # 新しい方式で認証
+    creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
     client = gspread.authorize(creds)
+    
     return client.open(SHEET_NAME).sheet1
 
 # データ読み込み
 def load_data():
     try:
         sheet = get_database()
-        data_str = sheet.acell('A1').value # ここを修正
+        data_str = sheet.acell('A1').value
         if data_str:
             return json.loads(data_str)
     except Exception:
-        pass
+        pass # 初回などは初期値を返す
     return {
         "points": 0, "xp": 0, "level": 1, 
         "last_login": "", "collection": [], "daily_gacha_done": False
@@ -44,7 +53,6 @@ def load_data():
 def save_data(data):
     try:
         sheet = get_database()
-        # update_cell は古いので update_acell に変更
         sheet.update_acell('A1', json.dumps(data, ensure_ascii=False))
     except Exception as e:
         st.error(f"セーブ失敗: {e}")
