@@ -57,14 +57,16 @@ def load_data():
     except: pass
     return {"points": 0, "xp": 0, "level": 1, "last_login": "", "collection": [], "daily_gacha_done": False}
 
-# データ保存（★修正ポイント：update_acellに変更）
+# データ保存（★ここを修正！200エラーを無視する）
 def save_data(data):
     try:
         sheet = get_database()
         json_str = json.dumps(data, ensure_ascii=False)
-        # A1セルに確実に書き込む命令に変更
         sheet.update_acell('A1', json_str)
     except Exception as e:
+        # エラーメッセージに「200」が含まれていたら「成功」なのでスルー！
+        if "200" in str(e):
+            return 
         st.error(f"セーブ失敗: {e}")
 
 # ガチャロジック
@@ -84,7 +86,7 @@ def check_login_bonus(data):
     return False, 0
 
 # --- 3. アプリ画面構築 ---
-st.set_page_config(page_title="Life Quest V6", page_icon="⚔️")
+st.set_page_config(page_title="Life Quest V7", page_icon="⚔️")
 
 # CSS
 st.markdown("""
@@ -136,7 +138,7 @@ with tab1:
                 save_data(data)
                 st.rerun()
 
-# --- ガチャ（★修正ポイント：無料ガチャ復活） ---
+# --- ガチャ ---
 with tab2:
     st.subheader("モンスター召喚")
     
