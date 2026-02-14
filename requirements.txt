@@ -1,5 +1,7 @@
 streamlit
-gspread==6.1.2
+gspread
 google-auth
+plotly
+pandas
 
 
