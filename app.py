@@ -10,43 +10,52 @@ import plotly.express as px
 
 # --- 1. 設定とデータ定義 ---
 
-# ★最新の正しいIDです！
+# ★正しいスプレッドシートID
 SHEET_ID = "1FvqLUrkR_YYk_azwI35rGr6_Y2swgUp1mawfJget5KU"
 
-# 画像素材
-IMGS = {
-    "CAPSULE_BLUE": "https://cdn-icons-png.flaticon.com/512/3503/3503202.png", # 青カプセル
-    "CAPSULE_GOLD": "https://cdn-icons-png.flaticon.com/512/3503/3503222.png", # 金カプセル
-    "CAPSULE_RAINBOW": "https://cdn-icons-png.flaticon.com/512/8617/8617997.png", # 虹カプセル
-    "POTION": "https://cdn-icons-png.flaticon.com/512/867/867927.png",
-    "MEAT": "https://cdn-icons-png.flaticon.com/512/1046/1046774.png",
-    "SWORD": "https://cdn-icons-png.flaticon.com/512/867/867375.png",
-    "SHIELD": "https://cdn-icons-png.flaticon.com/512/2553/2553641.png",
+# 画像素材 (イラスト問題を解決するため、色+絵文字の確実な画像を使用)
+# もし好きな画像があれば、ここのURLを書き換えてください
+MONSTER_IMGS = {
+    "UR_DRAGON": "https://placehold.co/400x400/8B0000/FFFFFF?text=🐲+Dragon",
+    "UR_ANGEL": "https://placehold.co/400x400/FFFF00/000000?text=👼+Angel",
+    "SSR_ROBOT": "https://placehold.co/400x400/2C3E50/00FFFF?text=🤖+Mecha",
+    "SSR_LION": "https://placehold.co/400x400/DAA520/FFFFFF?text=🦁+Lion",
+    "SR_WOLF": "https://placehold.co/400x400/A9A9A9/FFFFFF?text=🐺+Wolf",
+    "SR_GRIFFIN": "https://placehold.co/400x400/B8860B/FFFFFF?text=🦅+Griffin",
+    "R_BOAR": "https://placehold.co/400x400/8B4513/FFFFFF?text=🐗+Boar",
+    "R_SPIDER": "https://placehold.co/400x400/000000/00FF00?text=🕷️+Spider",
+    "R_BAT": "https://placehold.co/400x400/4B0082/FFFFFF?text=🦇+Bat",
+    "N_SLIME": "https://placehold.co/400x400/3498DB/FFFFFF?text=💧+Slime", # 青いスライム
+    "N_MUSHROOM": "https://placehold.co/400x400/E74C3C/FFFFFF?text=🍄+Mushroom",
+    
+    # ガチャ演出用
+    "CAPSULE_BLUE": "https://cdn-icons-png.flaticon.com/512/3503/3503202.png",
+    "CAPSULE_GOLD": "https://cdn-icons-png.flaticon.com/512/3503/3503222.png",
+    "CAPSULE_RAINBOW": "https://cdn-icons-png.flaticon.com/512/8617/8617997.png",
     "GACHA_GIF": "https://media.tenor.com/JdJOQWqH3yUAAAAM/summon-summoning.gif"
 }
 
-# モンスターDB
 MONSTER_DB = {
     "UR": [
-        {"name": "🐲 伝説のドラゴン", "power": 10000, "skill": {"type": "all_bonus", "val": 0.2}, "desc": "全タスク報酬+20%！最強の古龍。", "img": "https://images.unsplash.com/photo-1599725427295-584a96319d69?w=400"},
-        {"name": "👼 大天使", "power": 9500, "skill": {"type": "task_bonus", "target": "ウォーキング", "val": 0.5}, "desc": "歩行報酬+50%！天界の使者。", "img": "https://placehold.co/400x400/f1c40f/ffffff?text=Archangel"}
+        {"name": "🐲 伝説のドラゴン", "power": 10000, "skill": {"type": "all_bonus", "val": 0.2}, "desc": "全タスク報酬+20%！最強の古龍。", "img": MONSTER_IMGS["UR_DRAGON"]},
+        {"name": "👼 大天使", "power": 9500, "skill": {"type": "task_bonus", "target": "ウォーキング", "val": 0.5}, "desc": "歩行報酬+50%！天界の使者。", "img": MONSTER_IMGS["UR_ANGEL"]}
     ],
     "SSR": [
-        {"name": "🤖 未来ロボ", "power": 5500, "skill": {"type": "task_bonus", "target": "コード書き", "val": 0.3}, "desc": "コード報酬+30%！未来の技術。", "img": "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400"},
-        {"name": "🦁 百獣の王", "power": 5000, "skill": {"type": "task_bonus", "target": "筋トレ", "val": 0.3}, "desc": "筋トレ報酬+30%！王者の風格。", "img": "https://placehold.co/400x400/f39c12/2c3e50?text=Lion+King"}
+        {"name": "🤖 未来ロボ", "power": 5500, "skill": {"type": "task_bonus", "target": "コード書き", "val": 0.3}, "desc": "コード報酬+30%！未来の技術。", "img": MONSTER_IMGS["SSR_ROBOT"]},
+        {"name": "🦁 百獣の王", "power": 5000, "skill": {"type": "task_bonus", "target": "筋トレ", "val": 0.3}, "desc": "筋トレ報酬+30%！王者の風格。", "img": MONSTER_IMGS["SSR_LION"]}
     ],
     "SR": [
-        {"name": "🐺 シルバーウルフ", "power": 3000, "skill": {"type": "task_bonus", "target": "ウォーキング", "val": 0.15}, "desc": "歩行報酬+15%！孤高の狼。", "img": "https://images.unsplash.com/photo-1590420485404-f86f2f12c6a0?w=400"},
-        {"name": "🦅 グリフォン", "power": 3200, "skill": {"type": "task_bonus", "target": "筋トレ", "val": 0.15}, "desc": "筋トレ報酬+15%！空の王者。", "img": "https://placehold.co/400x400/d35400/f1c40f?text=Griffon"}
+        {"name": "🐺 シルバーウルフ", "power": 3000, "skill": {"type": "task_bonus", "target": "ウォーキング", "val": 0.15}, "desc": "歩行報酬+15%！孤高の狼。", "img": MONSTER_IMGS["SR_WOLF"]},
+        {"name": "🦅 グリフォン", "power": 3200, "skill": {"type": "task_bonus", "target": "筋トレ", "val": 0.15}, "desc": "筋トレ報酬+15%！空の王者。", "img": MONSTER_IMGS["SR_GRIFFIN"]}
     ],
     "R": [
-        {"name": "🐗 ワイルドボア", "power": 1200, "skill": {"type": "task_bonus", "target": "筋トレ", "val": 0.05}, "desc": "筋トレ報酬+5%！猪突猛進。", "img": "https://images.unsplash.com/photo-1588636402377-59f63567a216?w=400"},
-        {"name": "🕷️ 巨大グモ", "power": 1100, "skill": {"type": "task_bonus", "target": "コード書き", "val": 0.05}, "desc": "コード報酬+5%！ネットの住人。", "img": "https://placehold.co/400x400/2c3e50/27ae60?text=Giant+Spider"},
-        {"name": "🦇 コウモリ", "power": 900, "skill": {"type": "task_bonus", "target": "ウォーキング", "val": 0.05}, "desc": "歩行報酬+5%！夜行性。", "img": "https://placehold.co/400x400/34495e/f1c40f?text=Bat"}
+        {"name": "🐗 ワイルドボア", "power": 1200, "skill": {"type": "task_bonus", "target": "筋トレ", "val": 0.05}, "desc": "筋トレ報酬+5%！猪突猛進。", "img": MONSTER_IMGS["R_BOAR"]},
+        {"name": "🕷️ 巨大グモ", "power": 1100, "skill": {"type": "task_bonus", "target": "コード書き", "val": 0.05}, "desc": "コード報酬+5%！ネットの住人。", "img": MONSTER_IMGS["R_SPIDER"]},
+        {"name": "🦇 コウモリ", "power": 900, "skill": {"type": "task_bonus", "target": "ウォーキング", "val": 0.05}, "desc": "歩行報酬+5%！夜行性。", "img": MONSTER_IMGS["R_BAT"]}
     ],
     "N": [
-        {"name": "💧 スライム", "power": 100, "skill": {"type": "task_bonus", "target": "掃除", "val": 0.05}, "desc": "掃除報酬+5%！基本の魔物。", "img": "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=400"},
-        {"name": "🍄 きのこ", "power": 50, "skill": {"type": "task_bonus", "target": "勉強", "val": 0.05}, "desc": "勉強報酬+5%！毒はない。", "img": "https://placehold.co/400x400/e67e22/ecf0f1?text=Mushroom"}
+        {"name": "💧 スライム", "power": 100, "skill": {"type": "task_bonus", "target": "掃除", "val": 0.05}, "desc": "掃除報酬+5%！基本の魔物。", "img": MONSTER_IMGS["N_SLIME"]},
+        {"name": "🍄 きのこ", "power": 50, "skill": {"type": "task_bonus", "target": "勉強", "val": 0.05}, "desc": "勉強報酬+5%！毒はない。", "img": MONSTER_IMGS["N_MUSHROOM"]}
     ]
 }
 
@@ -73,26 +82,25 @@ def get_database():
     client = gspread.authorize(creds)
     return client.open_by_key(SHEET_ID).sheet1
 
-# データ読み込み（構造更新対応）
+# データ読み込み
 def load_data():
     try:
         sheet = get_database()
         data_str = sheet.acell('A1').value
         if data_str:
             data = json.loads(data_str)
-            # --- 新機能用のデータ初期化 ---
-            if "items" not in data: data["items"] = {"gacha_ticket": 0}
+            # データの初期化・補正
+            if "point_history" not in data: data["point_history"] = {} # 日別ポイント記録
+            if "shop_counts" not in data: data["shop_counts"] = {} # ショップ購入記録(日/週/月)
+            if "items" not in data: data["items"] = {"gacha_ticket": 0, "sr_ticket": 0, "ssr_ticket": 0}
             if "monster_levels" not in data: data["monster_levels"] = {}
             if "raid_boss" not in data: data["raid_boss"] = {"hp": 5000, "max_hp": 5000, "name": "魔王・怠惰", "defeat_count": 0}
             if "achievements" not in data: data["achievements"] = []
             if "task_counts" not in data: data["task_counts"] = {}
             if "total_points" not in data: data["total_points"] = data["points"]
             if "expedition" not in data: data["expedition"] = {"active": False, "end_time": None, "monster": ""}
-            if "daily_shop_counts" not in data: data["daily_shop_counts"] = {"ticket": 0}
-            
-            # V12追加項目
-            if "equipment" not in data: data["equipment"] = {"weapon": None, "armor": None} # 装備
-            if "active_buffs" not in data: data["active_buffs"] = {} # ポーション効果
+            if "equipment" not in data: data["equipment"] = {"weapon": None, "armor": None}
+            if "active_buffs" not in data: data["active_buffs"] = {}
             if "mission_progress" not in data: data["mission_progress"] = {"daily": {}, "weekly": {}, "last_login": "", "last_week": 0}
             if "bg_theme" not in data: data["bg_theme"] = "default"
             
@@ -101,18 +109,18 @@ def load_data():
         print(f"Load Error: {e}")
         pass
     
-    # 完全初期データ
+    # 初期データ
     return {
         "points": 0, "total_points": 0, "xp": 0, "level": 1, 
         "last_login": "", 
         "monster_levels": {}, 
-        "daily_gacha_done": False,
-        "items": {"gacha_ticket": 0},
+        "items": {"gacha_ticket": 0, "sr_ticket": 0, "ssr_ticket": 0},
         "raid_boss": {"hp": 5000, "max_hp": 5000, "name": "魔王・怠惰", "defeat_count": 0},
         "achievements": [],
         "task_counts": {},
+        "point_history": {},
+        "shop_counts": {},
         "expedition": {"active": False, "end_time": None, "monster": ""},
-        "daily_shop_counts": {"ticket": 0},
         "equipment": {"weapon": None, "armor": None},
         "active_buffs": {},
         "mission_progress": {"daily": {}, "weekly": {}, "last_login": "", "last_week": 0},
@@ -129,11 +137,42 @@ def save_data(data):
         if "200" in str(e): return 
         st.error(f"セーブ失敗: {e}")
 
-# ボーナス計算 (ポーション + 装備 + モンスター)
+# ポイント加算（同時に履歴も更新）
+def add_points(data, amount):
+    data["points"] += amount
+    data["total_points"] += amount
+    
+    # 日別履歴の更新
+    today = str(datetime.date.today())
+    data["point_history"][today] = data["point_history"].get(today, 0) + amount
+    return data
+
+# ショップ購入制限チェック
+def check_shop_limit(data, item_key, limit_type, limit_count):
+    today = str(datetime.date.today())
+    week = f"{datetime.date.today().year}-W{datetime.date.today().isocalendar()[1]}"
+    month = f"{datetime.date.today().year}-{datetime.date.today().month}"
+    
+    counts = data["shop_counts"]
+    
+    if limit_type == "daily":
+        key = f"{item_key}_{today}"
+        return counts.get(key, 0) < limit_count, key
+    elif limit_type == "weekly":
+        key = f"{item_key}_{week}"
+        return counts.get(key, 0) < limit_count, key
+    elif limit_type == "monthly":
+        key = f"{item_key}_{month}"
+        return counts.get(key, 0) < limit_count, key
+    return True, None
+
+def use_shop_limit(data, key):
+    data["shop_counts"][key] = data["shop_counts"].get(key, 0) + 1
+
+# ボーナス計算
 def calculate_bonus(data, task_name_part):
     bonus_rate = 0.0
-    
-    # 1. モンスターパッシブ
+    # モンスター
     for m_name, level in data["monster_levels"].items():
         monster_info = None
         for rarity in MONSTER_DB:
@@ -145,19 +184,14 @@ def calculate_bonus(data, task_name_part):
             if skill["type"] == "all_bonus": bonus_rate += skill["val"] * lv_factor
             elif skill["type"] == "task_bonus" and skill.get("target") in task_name_part:
                 bonus_rate += skill["val"] * lv_factor
-
-    # 2. 装備ボーナス
+    # 装備
     if data["equipment"]["weapon"] == "勇者の剣": bonus_rate += 0.1
     if data["equipment"]["armor"] == "王者の盾": bonus_rate += 0.05
-    
-    # 3. ポーション効果 (時間制限)
+    # ポーション
     now = datetime.datetime.now().isoformat()
     if "potion" in data["active_buffs"]:
-        end_time = data["active_buffs"]["potion"]
-        if now < end_time:
-            bonus_rate += 1.0 # +100% (2倍)
-        else:
-            del data["active_buffs"]["potion"] # 期限切れ削除
+        if now < data["active_buffs"]["potion"]: bonus_rate += 1.0
+        else: del data["active_buffs"]["potion"]
             
     return bonus_rate
 
@@ -166,36 +200,39 @@ def update_mission(data, action_type, val=1):
     today = str(datetime.date.today())
     week_num = datetime.date.today().isocalendar()[1]
     
-    # デイリーリセット
     if data["mission_progress"]["last_login"] != today:
         data["mission_progress"]["daily"] = {}
         data["mission_progress"]["last_login"] = today
-        
-    # ウィークリーリセット
     if data["mission_progress"]["last_week"] != week_num:
         data["mission_progress"]["weekly"] = {}
         data["mission_progress"]["last_week"] = week_num
 
-    # 進捗加算
     prog = data["mission_progress"]
     prog["daily"][action_type] = prog["daily"].get(action_type, 0) + val
     prog["weekly"][action_type] = prog["weekly"].get(action_type, 0) + val
-    
-    # 報酬チェックはUI側で行う
     return data
 
-# ガチャロジック
-def pull_gacha():
-    rarity = random.choices(list(GACHA_RATES.keys()), weights=list(GACHA_RATES.values()), k=1)[0]
+# ガチャロジック (チケット対応)
+def pull_gacha(min_rarity="N"):
+    rates = GACHA_RATES.copy()
+    
+    # 確定ガチャ用の確率操作
+    if min_rarity == "SR":
+        rates = {"UR": 5, "SSR": 15, "SR": 80} # SR以上のみ
+    elif min_rarity == "SSR":
+        rates = {"UR": 20, "SSR": 80} # SSR以上のみ
+
+    rarity = random.choices(list(rates.keys()), weights=list(rates.values()), k=1)[0]
     monster_obj = random.choice(MONSTER_DB[rarity])
     return rarity, monster_obj
 
 # --- アプリ画面構築 ---
-st.set_page_config(page_title="Life Quest: Ultimate", page_icon="⚔️")
+st.set_page_config(page_title="Life Quest: Legend", page_icon="⚔️")
 
-# CSS (テーマ適用)
 if 'data' not in st.session_state: st.session_state.data = load_data()
 data = st.session_state.data
+
+# テーマ
 theme_color = "#f0f2f6"
 if data.get("bg_theme") == "dark": theme_color = "#2c3e50"
 elif data.get("bg_theme") == "gold": theme_color = "#fff8dc"
@@ -212,13 +249,11 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ログイン処理
-update_mission(data, "d_login", 1) # ログインミッション
+update_mission(data, "d_login", 1)
 today = str(datetime.date.today())
 if data["last_login"] != today:
     data["last_login"] = today
-    data["daily_gacha_done"] = False
-    data["daily_shop_counts"] = {"ticket": 0}
-    data["points"] += 100
+    add_points(data, 100) # ログインボーナス
     st.balloons()
     st.success("🎁 ログインボーナス！ +100pt")
     save_data(data)
@@ -226,7 +261,6 @@ if data["last_login"] != today:
 # サイドバー
 with st.sidebar:
     st.title("🛡️ ステータス")
-    # 装備表示
     wpn = data["equipment"]["weapon"] or "なし"
     arm = data["equipment"]["armor"] or "なし"
     
@@ -241,17 +275,17 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
     
-    # バフ表示
+    # バフ
     now = datetime.datetime.now().isoformat()
     if "potion" in data["active_buffs"]:
         if now < data["active_buffs"]["potion"]:
-            st.warning("🔥 やる気ポーション有効中！ (報酬2倍)")
+            st.warning("🔥 やる気ポーション有効中！")
     
     if st.button("🔄 データ手動保存"): 
         save_data(data)
         st.success("保存しました")
 
-st.title("⚔️ Life Quest: Ultimate")
+st.title("⚔️ Life Quest: Legend")
 
 # レイドボス
 boss = data["raid_boss"]
@@ -270,7 +304,6 @@ else:
         save_data(data)
         st.rerun()
 
-# タブメニュー
 tabs = st.tabs(["📜 クエスト", "📅 ミッション", "🏪 ショップ", "🗺️ 冒険", "🔮 ガチャ", "📊 記録", "📖 図鑑"])
 
 # --- 1. クエスト ---
@@ -287,16 +320,13 @@ with tabs[0]:
             if bonus > 0: label += f" 🔥+{int(bonus*100)}%"
             
             if st.button(label):
-                data["points"] += final
-                data["total_points"] += final
+                add_points(data, final)
                 data["xp"] += 10
                 data["task_counts"][t_name] = data["task_counts"].get(t_name, 0) + 1
                 
-                # ボスダメージ
                 dmg = 50 + (data["level"] * 5)
                 if boss["hp"] > 0: boss["hp"] -= dmg
                 
-                # ミッション更新
                 update_mission(data, "d_task3", 1)
                 update_mission(data, "w_task20", 1)
                 update_mission(data, "w_boss", dmg)
@@ -310,7 +340,8 @@ with tabs[0]:
 with tabs[1]:
     st.subheader("📅 ミッションボード")
     
-    st.write("▼ **デイリー**")
+    # デイリー
+    st.markdown("##### 🌞 デイリー")
     for m in MISSIONS["daily"]:
         prog = data["mission_progress"]["daily"].get(m["id"], 0)
         done = prog >= m["target"]
@@ -321,14 +352,15 @@ with tabs[1]:
         
         if done and not claimed:
             if col_m2.button("受取", key=m["id"]):
-                data["points"] += m["reward_pt"]
+                add_points(data, m["reward_pt"])
                 data["mission_progress"]["daily"][f"{m['id']}_claimed"] = True
                 save_data(data)
                 st.rerun()
         elif claimed:
             col_m2.caption("受取済")
-            
-    st.write("▼ **ウィークリー**")
+
+    # ウィークリー
+    st.markdown("##### 📅 ウィークリー")
     for m in MISSIONS["weekly"]:
         prog = data["mission_progress"]["weekly"].get(m["id"], 0)
         done = prog >= m["target"]
@@ -346,84 +378,80 @@ with tabs[1]:
         elif claimed:
             col_m2.caption("受取済")
 
-# --- 3. ショップ ---
+# --- 3. ショップ (制限機能付き) ---
 with tabs[2]:
     st.subheader("🏪 雑貨屋")
-    c1, c2 = st.columns(2)
     
-    # ガチャチケ
-    with c1:
-        st.markdown(f"**🎫 ガチャチケ** (150pt)")
-        if st.button("購入", key="buy_ticket", disabled=data["points"]<150):
-            data["points"] -= 150
-            data["items"]["gacha_ticket"] = data["items"].get("gacha_ticket", 0) + 1
-            save_data(data)
-            st.rerun()
-            
-    # ポーション
-    with c2:
-        st.markdown(f"**🧪 やる気ポーション** (300pt)<br>1時間獲得ポイント2倍", unsafe_allow_html=True)
-        if st.button("購入＆使用", key="buy_potion", disabled=data["points"]<300):
-            data["points"] -= 300
-            end_time = datetime.datetime.now() + datetime.timedelta(hours=1)
-            data["active_buffs"]["potion"] = end_time.isoformat()
-            save_data(data)
-            st.success("ポーションを使用した！やる気がみなぎる！")
-            st.rerun()
-            
-    st.markdown("---")
-    st.subheader("⚔️ 装備ショップ")
-    e1, e2 = st.columns(2)
-    with e1:
-        st.image(IMGS["SWORD"], width=50)
-        if st.button("勇者の剣 (2000pt)", disabled=data["points"]<2000 or data["equipment"]["weapon"]=="勇者の剣"):
-            data["points"] -= 2000
-            data["equipment"]["weapon"] = "勇者の剣"
-            save_data(data)
-            st.rerun()
-    with e2:
-        st.image(IMGS["SHIELD"], width=50)
-        if st.button("王者の盾 (1500pt)", disabled=data["points"]<1500 or data["equipment"]["armor"]=="王者の盾"):
-            data["points"] -= 1500
-            data["equipment"]["armor"] = "王者の盾"
-            save_data(data)
-            st.rerun()
-            
-    st.markdown("---")
-    st.subheader("🏠 テーマ変更")
-    if st.button("ダークモード (500pt)", disabled=data["points"]<500):
-        data["points"] -= 500
-        data["bg_theme"] = "dark"
+    # 1. デイリーガチャチケ
+    can_buy, key = check_shop_limit(data, "ticket", "daily", 1)
+    st.markdown(f"**🎫 ガチャチケ** (150pt) `残り: {1 if can_buy else 0}`")
+    if st.button("購入", disabled=not can_buy or data["points"]<150):
+        data["points"] -= 150
+        data["items"]["gacha_ticket"] += 1
+        use_shop_limit(data, key)
         save_data(data)
+        st.success("購入しました！")
+        st.rerun()
+            
+    # 2. SR確定 (週1)
+    can_buy_sr, key_sr = check_shop_limit(data, "sr_ticket", "weekly", 1)
+    st.markdown(f"**🎫 SR確定チケット** (1000pt) `週残り: {1 if can_buy_sr else 0}`")
+    if st.button("購入 (SR)", disabled=not can_buy_sr or data["points"]<1000):
+        data["points"] -= 1000
+        data["items"]["sr_ticket"] = data["items"].get("sr_ticket", 0) + 1
+        use_shop_limit(data, key_sr)
+        save_data(data)
+        st.success("SRチケット購入！")
+        st.rerun()
+
+    # 3. SSR確定 (月1)
+    can_buy_ssr, key_ssr = check_shop_limit(data, "ssr_ticket", "monthly", 1)
+    st.markdown(f"**🎫 SSR確定チケット** (3000pt) `月残り: {1 if can_buy_ssr else 0}`")
+    if st.button("購入 (SSR)", disabled=not can_buy_ssr or data["points"]<3000):
+        data["points"] -= 3000
+        data["items"]["ssr_ticket"] = data["items"].get("ssr_ticket", 0) + 1
+        use_shop_limit(data, key_ssr)
+        save_data(data)
+        st.success("SSRチケット購入！")
+        st.rerun()
+
+    st.markdown("---")
+    # 特殊アイテム
+    if st.button("⏳ 時の砂時計 (500pt) - ミッションリセット", disabled=data["points"]<500):
+        data["points"] -= 500
+        data["mission_progress"]["daily"] = {} # リセット
+        save_data(data)
+        st.success("時間が巻き戻った... ミッションが復活！")
+        st.rerun()
+
+    if st.button("🧪 やる気ポーション (300pt)", disabled=data["points"]<300):
+        data["points"] -= 300
+        end_time = datetime.datetime.now() + datetime.timedelta(hours=1)
+        data["active_buffs"]["potion"] = end_time.isoformat()
+        save_data(data)
+        st.success("やる気がみなぎる！")
         st.rerun()
 
 # --- 4. 冒険 (6時間) ---
 with tabs[3]:
-    st.subheader("🗺️ 冒険")
+    st.subheader("🗺️ 冒険 (6時間)")
     now = datetime.datetime.now()
     exp = data.get("expedition", {"active": False})
     
     if exp["active"]:
         end_time = datetime.datetime.fromisoformat(exp["end_time"])
         if now >= end_time:
-            # 帰還処理
-            is_success = random.randint(1, 100) <= 30 # 30%で大成功
-            base_reward = 500
-            
+            is_success = random.randint(1, 100) <= 30
             st.balloons()
             if is_success:
                 st.success(f"大成功！！ {exp['monster']} が宝箱を見つけた！")
-                st.write("獲得: 1000pt + ガチャチケット1枚")
-                data["points"] += 1000
-                data["items"]["gacha_ticket"] = data["items"].get("gacha_ticket", 0) + 1
+                add_points(data, 1000)
+                data["items"]["gacha_ticket"] += 1
             else:
                 st.info(f"おかえり！ {exp['monster']} が帰ってきた。")
-                st.write("獲得: 500pt")
-                data["points"] += 500
+                add_points(data, 500)
             
-            # ミッション
-            update_mission(data, "w_task20", 1) # 冒険もタスク扱いで加算(簡易)
-            
+            update_mission(data, "w_task20", 1)
             data["expedition"] = {"active": False, "end_time": None, "monster": ""}
             save_data(data)
             if st.button("OK"): st.rerun()
@@ -439,7 +467,6 @@ with tabs[3]:
         else:
             m_list = list(data["monster_levels"].keys())
             sel = st.selectbox("派遣する", m_list)
-            st.write("所要時間: **6時間**")
             if st.button("出発！"):
                 end = now + datetime.timedelta(hours=6)
                 data["expedition"] = {"active": True, "end_time": end.isoformat(), "monster": sel}
@@ -450,17 +477,14 @@ with tabs[3]:
 with tabs[4]:
     st.subheader("召喚の間")
     
-    # ガチャ実行関数
     def run_gacha_anim(rarity):
         placeholder = st.empty()
-        # 1. 回す動画
-        placeholder.image(IMGS["GACHA_GIF"], use_column_width=True)
+        placeholder.image(MONSTER_IMGS["GACHA_GIF"], use_column_width=True)
         time.sleep(2.5)
         
-        # 2. カプセル落下
-        capsule_img = IMGS["CAPSULE_BLUE"]
-        if rarity == "UR": capsule_img = IMGS["CAPSULE_RAINBOW"]
-        elif rarity in ["SSR", "SR"]: capsule_img = IMGS["CAPSULE_GOLD"]
+        capsule_img = MONSTER_IMGS["CAPSULE_BLUE"]
+        if rarity == "UR": capsule_img = MONSTER_IMGS["CAPSULE_RAINBOW"]
+        elif rarity in ["SSR", "SR"]: capsule_img = MONSTER_IMGS["CAPSULE_GOLD"]
         
         placeholder.markdown(f"<div style='text-align:center;'><img src='{capsule_img}' width='200'></div>", unsafe_allow_html=True)
         time.sleep(1.0)
@@ -472,8 +496,6 @@ with tabs[4]:
             data["daily_gacha_done"] = True
             rarity, m = pull_gacha()
             ph = run_gacha_anim(rarity)
-            
-            # 結果
             ph.empty()
             st.image(m["img"], width=300)
             st.markdown(f"## {rarity} {m['name']}")
@@ -483,17 +505,16 @@ with tabs[4]:
             st.balloons()
             
     with c2:
-        ticket = data["items"].get("gacha_ticket", 0)
-        label = f"チケットで引く (残り{ticket})" if ticket > 0 else "200ptで引く"
-        can_play = ticket > 0 or data["points"] >= 200
+        t_n = data["items"].get("gacha_ticket", 0)
+        t_sr = data["items"].get("sr_ticket", 0)
+        t_ssr = data["items"].get("ssr_ticket", 0)
         
-        if st.button(label, disabled=not can_play):
-            if ticket > 0: data["items"]["gacha_ticket"] -= 1
+        # 通常チケット
+        if st.button(f"通常チケ ({t_n}) / 200pt", disabled=(t_n==0 and data["points"]<200)):
+            if t_n > 0: data["items"]["gacha_ticket"] -= 1
             else: data["points"] -= 200
-            
-            rarity, m = pull_gacha()
+            rarity, m = pull_gacha("N")
             ph = run_gacha_anim(rarity)
-            
             ph.empty()
             st.image(m["img"], width=300)
             st.markdown(f"## {rarity} {m['name']}")
@@ -502,15 +523,55 @@ with tabs[4]:
             save_data(data)
             st.balloons()
 
+        # 確定チケット
+        if t_sr > 0:
+            if st.button(f"SR確定チケを使用 ({t_sr})"):
+                data["items"]["sr_ticket"] -= 1
+                rarity, m = pull_gacha("SR")
+                ph = run_gacha_anim(rarity)
+                ph.empty()
+                st.image(m["img"], width=300)
+                st.markdown(f"## {rarity} {m['name']}")
+                data["monster_levels"][m["name"]] = data["monster_levels"].get(m["name"], 0) + 1
+                save_data(data)
+                st.balloons()
+                
+        if t_ssr > 0:
+            if st.button(f"SSR確定チケを使用 ({t_ssr})"):
+                data["items"]["ssr_ticket"] -= 1
+                rarity, m = pull_gacha("SSR")
+                ph = run_gacha_anim(rarity)
+                ph.empty()
+                st.image(m["img"], width=300)
+                st.markdown(f"## {rarity} {m['name']}")
+                data["monster_levels"][m["name"]] = data["monster_levels"].get(m["name"], 0) + 1
+                save_data(data)
+                st.balloons()
+
 # --- 6. 記録 (グラフ) ---
 with tabs[5]:
     st.subheader("📊 活動ログ")
-    if data["task_counts"]:
-        df = pd.DataFrame(list(data["task_counts"].items()), columns=["Task", "Count"])
-        fig = px.pie(df, values='Count', names='Task', title='タスク比率')
-        st.plotly_chart(fig)
+    
+    # 1. 日別ポイント推移 (棒グラフ)
+    if data["point_history"]:
+        history_df = pd.DataFrame(list(data["point_history"].items()), columns=["Date", "Points"])
+        history_df["Date"] = pd.to_datetime(history_df["Date"])
+        history_df = history_df.sort_values("Date")
+        
+        st.markdown("##### 📅 日別の獲得ポイント")
+        fig_bar = px.bar(history_df, x="Date", y="Points", title="毎日の頑張り")
+        st.plotly_chart(fig_bar)
     else:
-        st.info("データがまだありません。")
+        st.info("データ収集中... タスクをこなすとここにグラフが出ます。")
+
+    st.markdown("---")
+    
+    # 2. タスク比率 (円グラフ)
+    if data["task_counts"]:
+        df_pie = pd.DataFrame(list(data["task_counts"].items()), columns=["Task", "Count"])
+        st.markdown("##### 🧹 タスクの内訳")
+        fig_pie = px.pie(df_pie, values='Count', names='Task')
+        st.plotly_chart(fig_pie)
 
 # --- 7. 図鑑 ---
 with tabs[6]:
