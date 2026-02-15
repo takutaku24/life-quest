@@ -13,7 +13,7 @@ import plotly.express as px
 # ★正しいスプレッドシートID
 SHEET_ID = "1FvqLUrkR_YYk_azwI35rGr6_Y2swgUp1mawfJget5KU"
 
-# ドット絵風アセット (プレースホルダー。好きな画像のURLに差し替えるとさらに良くなります！)
+# ドット絵風アセット
 ASSETS = {
     # 背景 (エリア)
     "BG_FOREST": "https://images.unsplash.com/photo-1448375240586-dfd8f3793371?auto=format&fit=crop&q=80&w=800", # 森
@@ -86,7 +86,7 @@ def load_data():
     except:
         data = {}
     
-    # 初期データ構造の保証 (不足キーがあれば追加)
+    # 初期データ構造の保証 (トップレベル)
     defaults = {
         "points": 0, "total_points": 0, "xp": 0, "level": 1,
         "job": "novice", "last_job_change": "",
@@ -103,6 +103,15 @@ def load_data():
     for k, v in defaults.items():
         if k not in data: data[k] = v
         
+    # ★重要修正: ネストされたデータの不足キーを補完する処理
+    # (ここがないと古いデータ読み込み時にエラーになる)
+    if "combo" not in data["mission_progress"]:
+        data["mission_progress"]["combo"] = 0
+    if "status" not in data["dungeon"]:
+        data["dungeon"]["status"] = "exploring"
+    if "active" not in data["pet"]:
+        data["pet"]["active"] = None
+
     return data
 
 def save_data(data):
@@ -119,7 +128,7 @@ def check_weekly_reset(data):
     today = datetime.date.today()
     current_week = today.isocalendar()[1]
     
-    if data["mission_progress"]["last_week"] != current_week:
+    if data["mission_progress"].get("last_week", 0) != current_week:
         # 月曜リセット処理
         data["mission_progress"]["weekly"] = {}
         data["mission_progress"]["last_week"] = current_week
@@ -235,7 +244,7 @@ if data["mission_progress"]["last_login"] != today_str:
     # 昨日の日付
     yesterday = str(datetime.date.today() - datetime.timedelta(days=1))
     if data["mission_progress"]["last_login"] == yesterday:
-        data["mission_progress"]["combo"] += 1 # 連続ログイン
+        data["mission_progress"]["combo"] = data["mission_progress"].get("combo", 0) + 1 # 連続ログイン
     else:
         data["mission_progress"]["combo"] = 1 # 途切れた
         
@@ -265,7 +274,7 @@ with st.sidebar:
     <div class="pixel-card">
         💎 Pt: <b>{data['points']}</b><br>
         🎫 チケ: <b>{data['items'].get('gacha_ticket', 0)}</b><br>
-        🔥 コンボ: <b>{data['mission_progress']['combo']}日</b>
+        🔥 コンボ: <b>{data['mission_progress'].get('combo', 0)}日</b>
     </div>
     """, unsafe_allow_html=True)
 
